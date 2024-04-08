@@ -4,6 +4,8 @@ Simple SSH Agent that implements some of the XZ sshd backdoor functionality.
 
 For those who want to more easily explore the backdoor using a typical SSH client.
 
+![demo](assets/demo.png)
+
 ## Usage
 
 - Patch your liblzma.so with a [custom ed448 public key](https://github.com/amlweems/xzbot/tree/main?tab=readme-ov-file#ed448-patch)
