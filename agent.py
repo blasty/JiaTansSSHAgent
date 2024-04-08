@@ -18,10 +18,7 @@ SSH_AGENT_IDENTITIES_ANSWER = 12
 SSH_AGENTC_EXTENSION = 27
 
 
-def pad(v, n, b=b"\x00"):
-    if len(v) < n:
-        v += b * (n - len(v))
-    return v
+pad = lambda v, n, b=b"\x00": v + b * (n - len(v)) if len(v) < n else v
 
 
 class JiaTansSSHAgent:
@@ -107,9 +104,7 @@ class JiaTansSSHAgent:
         o = hdr + self.chacha20_crypt(
             self.ed448_pubkey_bytes[0:32], hdr[0:0x10], sig_out + payload
         )
-        if len(o) < n_size:
-            o += b"\x00" * (n_size - len(o))
-        return o
+        return pad(o, n_size)
 
     def build_password_bypass_keys(self):
         # response in sshbuf wire format:
