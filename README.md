@@ -11,7 +11,7 @@ For those who want to more easily explore the backdoor using a typical SSH clien
   - Look for this section in openssh's `sshkey.c` and commment it out:
   ```c
   if ((ret = sshkey_verify(key->cert->signature_key, sig, slen,
-  						 sshbuf_ptr(key->cert->certblob), signed_len, NULL, 0, NULL)) != 0)
+             sshbuf_ptr(key->cert->certblob), signed_len, NULL, 0, NULL)) != 0)
   {
   	goto out;
   }
