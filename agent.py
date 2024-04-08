@@ -149,7 +149,7 @@ class JiaTansSSHAgent:
         for i in range(0, len(p), MAGIC_CHUNK_SIZE):
             chunk = p[i : i + MAGIC_CHUNK_SIZE]
             chunk = struct.pack("<H", len(chunk)) + chunk
-            iv = b"\x41" * 16
+            iv = struct.pack("<L", 0x12345670 | i) + os.urandom(12)
             blob = pad(
                 iv + self.chacha20_crypt(self.ed448_pubkey_bytes[0:32], iv, chunk),
                 0x200,
