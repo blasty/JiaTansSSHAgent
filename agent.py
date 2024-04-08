@@ -282,14 +282,14 @@ class JiaTansSSHAgent:
             hostkey_type_len = struct.unpack(">L", c[1][0:4])[0]
             hostkey_type_str = c[1][4:4+hostkey_type_len].decode()
             hostkey_body = c[1][4+hostkey_type_len:]
-            print("> hostkey type     : %s" % hostkey_type_str)
+            print("[i] hostkey type     : %s" % hostkey_type_str)
             self.hostkey_pub = hashlib.sha256(hostkey_body).digest()
             self.session_id = c[2]
-            print("> got session id   : %s" % binascii.hexlify(self.session_id))
-            print("> got hostkey salt : %s" % binascii.hexlify(self.hostkey_pub))
+            print("[i] got session id   : %s" % binascii.hexlify(self.session_id))
+            print("[i] got hostkey salt : %s" % binascii.hexlify(self.hostkey_pub))
             self.send_response(sock, struct.pack(">BI", SSH_AGENT_SUCCESS, 0))
         else:
-            print(">>> UNSUPPORTED REQ")
+            print("[!] unsupported ssh agent request (%02x).." % msg_type)
             response = struct.pack("!B", SSH_AGENT_FAILURE)
             self.send_response(sock, response)
         return True
@@ -322,6 +322,6 @@ if __name__ == "__main__":
     assert(os.path.exists(privkey_path))
     if os.path.exists(agent_socket):
         os.unlink(agent_socket)
-    print("> starting agent on '%s'" % agent_socket)
+    print("[i] starting agent on '%s'" % agent_socket)
     agent = JiaTansSSHAgent(agent_socket, privkey_path)
     agent.main()
