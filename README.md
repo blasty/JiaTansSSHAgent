@@ -18,6 +18,7 @@ For those who want to more easily explore the backdoor using a typical SSH clien
   	goto out;
   }
   ```
+- `python3 -m virtualenv venv && . venv/bin/activate && pip install -r requirements.txt`
 - `python3 agent.py /tmp/agent ./privkey.bin`
 - `SSH_AUTH_SOCK=/tmp/agent ./ssh root@localhost`
 - log in with any password :)
