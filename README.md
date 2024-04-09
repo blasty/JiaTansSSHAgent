@@ -9,7 +9,7 @@ For those who want to more easily explore the backdoor using a typical SSH clien
 ## Usage
 
 - Generate your own ed448 private key: `openssl genpkey -algorithm ED448 -outform PEM -out privkey.pem`
-- Patch your liblzma.so with a [custom ed448 public key](https://github.com/amlweems/xzbot/tree/main?tab=readme-ov-file#ed448-patch)
+- Patch your liblzma.so with the ed448 pubkey: `python3 scripts/patch_liblzma.py privkey.pem liblzma.so liblzma_patched.so`
 - Patch your SSH client to skip verification of the certificate:
   - Look for this section in openssh's `sshkey.c` and commment it out:
   ```c
