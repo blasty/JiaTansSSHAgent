@@ -13,7 +13,7 @@ For those who want to more easily explore the backdoor using a typical SSH clien
 - Patch your liblzma.so with the ed448 pubkey
   - `python3 scripts/patch_liblzma.py privkey.pem liblzma.so liblzma_patched.so`
 - Patch your SSH client to skip verification of the certificate:
-  - Look for this section in openssh's `sshkey.c` and commment it out:
+  - Look for this section in openssh's `sshkey.c` and comment it out:
   ```c
   if ((ret = sshkey_verify(key->cert->signature_key, sig, slen,
              sshbuf_ptr(key->cert->certblob), signed_len, NULL, 0, NULL)) != 0)
